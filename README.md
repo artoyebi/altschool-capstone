@@ -28,17 +28,17 @@ Tools: AWS CLI, Kubectl, Helm and Terraform
 
 `aws eks --region us-west-1 update-kubeconfig --name test-eksdemo1`
 
-![alt text](image2.jpeg)
+![alt text](images/image2.jpeg)
 
 ### Phase 2: Deployment
 
 - Deploy using the manifest file
 
-![alt text](image1.jpeg)
+![alt text](images/image1.jpeg)
 
 - Get services and pods deployment status
 
-![alt text](<image0 (1).jpeg>)
+![alt text](<images/image0 (1).jpeg>)
 
 - Install Helm and Setup ingress
 
@@ -75,8 +75,7 @@ Tools: AWS CLI, Kubectl, Helm and Terraform
 
     - Create a domain and let it point to the load balancer that ingress has created
 
-    ![alt text](<Screenshot 2024-08-15 235706.png>)
-
+    ![alt text](<images/Screenshot 2024-08-15 235706.png>)
 
 
     - Install cert-manager
@@ -97,6 +96,42 @@ Tools: AWS CLI, Kubectl, Helm and Terraform
 
         `kubectl get secrets`
 
-    ![alt text](<Screenshot 2024-08-15 235241.png>)
+    ![alt text](<images/Screenshot 2024-08-15 235241.png>)
 
+
+### Phase 3: Monitoring
+
+-Create the monitoring namespace using the `00-monitoring-ns.yaml` file:
+
+`$ kubectl create -f 00-monitoring-ns.yaml`
+
+#### Prometheus
+
+- Deploy using the prometheus manifests (01-10) in any order:
+
+`kubectl apply $(ls *-prometheus-*.yaml | awk ' { print " -f " $1 } ')`
+
+The prometheus server will be exposed on Nodeport `31090`.
+
+![alt text](<images/Screenshot 2024-08-15 235146.png>)
+
+#### Grafana
+
+- Apply the grafana manifests from 20 to 22:
+
+    `kubectl apply $(ls *-grafana-*.yaml | awk ' { print " -f " $1 }'  | grep -v grafana-import)`
+
+Once the grafana pod is in the Running state apply the `23-grafana-import-dash-batch.yaml` manifest to import the Dashboards:
+
+`kubectl apply -f 23-grafana-import-dash-batch.yaml`
+
+Grafana will be exposed on the NodePort `31300` 
+
+![alt text](<images/Screenshot 2024-08-15 235213.png>)
+
+#### Alertmanager
+
+Setup alertmanager using Prometheus as datasource on grafana and integrate with Slack Webhook
+
+![alt text](images/image.png)
 
